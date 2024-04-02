@@ -2,16 +2,14 @@
 #include <DHT.h>  			// incluye la libreria DHT
 #include "DES.h" 			//incluye la libreria DES
 
-#define dataPin 10			// PIN de conexion con el sensor
-#define DHTType DHT22		// Definir el tipo de sensor
+#define RED_PIN 5  
+#define GREEN_PIN 6
+#define BLUE_PIN 9
 
-DHT dht = DHT(dataPin, DHTType);	// Instancia del sensor con el puerto
+#define DATA_PIN 2                   // define the type data pin
+#define DHT_TYPE DHT22               // define the DHT sensor (DHT11, DHT21, or DHT22)
 
-#define redStatusPin 5  		// led rojo
-#define greenStatusPin 6      	// led verde
-#define blueStatusPin 9       	// led azul
-
-#define controlSPIBusClock 4  	// Controlador del BUS SPI. Estará a nivel bajo para inactivar la pantalla
+DHT dht = DHT(DATA_PIN, DHT_TYPE);   // instantiate the dht class with our data pin and DHT type
 
 DES des;						// declara la variable para encritar y desencriptar
 byte key[] = { 
@@ -23,20 +21,17 @@ byte key[] = {
 void setup() {
   dht.begin();
 
-  pinMode(controlSPIBusClock, OUTPUT);      
-  digitalWrite(controlSPIBusClock, LOW);    
-
   Wire.begin(9);					// estableciendo dirección 9
   Wire.setClock(10000);				// establezco la velocidad del bus en lenta
   Wire.onReceive(receiveEvent);		// si se recibe algún dato pasarlo a la funcion 'receiveEvent'
   Wire.onRequest(receptionEvent); 	// si se requiere algun dato ejecutar la funcion 'receptionEvent'
 
-  pinMode(greenStatusPin, OUTPUT);	// Led verde encendido significa que el puerto serie esta libre
-  pinMode(blueStatusPin, OUTPUT);   // Led azul no se usará de momento
-  pinMode(redStatusPin, OUTPUT);    // Led rojo encendido significa que el puerto serie esta ocupado
-  digitalWrite(greenStatusPin, 0);  // encender led verde
-  digitalWrite(blueStatusPin, 255); // apagar led azul  
-  digitalWrite(redStatusPin, 255);	// apagar led rojo
+  pinMode(GREEN_PIN, OUTPUT);	// Led verde encendido significa que el puerto serie esta libre
+  pinMode(BLUE_PIN, OUTPUT);   // Led azul no se usará de momento
+  pinMode(RED_PIN, OUTPUT);    // Led rojo encendido significa que el puerto serie esta ocupado
+  digitalWrite(GREEN_PIN, 255);  // encender led verde
+  digitalWrite(BLUE_PIN, 0); // apagar led azul  
+  digitalWrite(RED_PIN, 0);	// apagar led rojo
 }
 
 String temperatureRead;				// variable para guardar la lectura del sensor+
@@ -48,20 +43,20 @@ void loop() {
 }
 
 void receptionEvent(){
-	digitalWrite(greenStatusPin, 255);  	// apagar led verde
-	digitalWrite(blueStatusPin,0);       	// encender led rojo
+	digitalWrite(GREEN_PIN, 0);  	// apagar led verde
+	digitalWrite(BLUE_PIN, 255);       	// encender led rojo
 	String temp;
 	temp=String(temperatureRead.toInt());				// paso a cadena un entero de un float
 	temp.toCharArray(texto, temp.length()+1);			// paso la cadena a una tabla
 	des.tripleEncrypt(msg,texto,key); 					// Encriptar el mensaje
 	Wire.write(msg,8);							// escribir 8 bytes
-	digitalWrite(greenStatusPin, 0);    	// encender el led verde
-	digitalWrite(blueStatusPin, 255);   	// apagar el led rojo
+	digitalWrite(GREEN_PIN, 255);    	// encender el led verde
+	digitalWrite(BLUE_PIN, 0);   	// apagar el led rojo
 }
 
 void receiveEvent(int numBytes){
-  digitalWrite(greenStatusPin, 255);  	// apagar led verde
-  digitalWrite(redStatusPin,0);       	// encender led rojo
+  digitalWrite(GREEN_PIN, 0);  	// apagar led verde
+  digitalWrite(RED_PIN, 255);       	// encender led rojo
   if (Wire.available()){				// hay datos que leer
 	//HAY QUE LEER 8 BYTES
 	for (int i = 0; i < 8; i++) {		// leer 8 bytes
@@ -77,6 +72,6 @@ void receiveEvent(int numBytes){
 		temperatureRead = dht.readTemperature(); 	
 	}
   }
-  digitalWrite(greenStatusPin, 0);    	// encender el led verde
-  digitalWrite(redStatusPin, 255);   	// apagar el led rojo	
+  digitalWrite(GREEN_PIN, 255);    	// encender el led verde
+  digitalWrite(RED_PIN, 0);   	// apagar el led rojo	
 }

@@ -10,8 +10,6 @@
 const int rs = 17, en = 16, d4 = 15, d5 = 14, d6 = 4, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-char tempRead[5];               // char array to hold temperature reading
-
 void setup() {
   Wire.begin();
   pinMode(GREEN_PIN, OUTPUT);    	// Led verde encendido significa que el puerto serie esta libre
@@ -25,7 +23,7 @@ void setup() {
   lcd.clear(); 
 }
 
-String tempRead;
+String datos;
 
 void loop() {
 	   
@@ -35,7 +33,5 @@ void loop() {
 void updateLCD() {
   lcd.clear();
   lcd.setCursor(1, 0);
-  lcd.print("Temp:");
-  lcd.print(tempRead);
-  lcd.print(" C");
+  lcd.print(datos);
 }
