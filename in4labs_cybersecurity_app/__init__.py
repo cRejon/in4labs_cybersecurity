@@ -24,7 +24,7 @@ end_time = os.environ.get('END_TIME')
 # Boards configuration
 boards = {
     'Board_1':{
-        'name':'Sensor',
+        'name':'AR1(Sensor)',
         #'model':'Arduino Uno WiFi Rev2',
         #'fqbn':'arduino:megaavr:uno2018',
         'model':'Arduino Nano ESP32',
@@ -32,13 +32,13 @@ boards = {
         'usb_port':'1',
     },
     'Board_2':{
-        'name':'LCD',
+        'name':'AR2(LCD)',
         'model':'Arduino Nano ESP32',
         'fqbn':'arduino:esp32:nano_nora',
         'usb_port':'2',
     },
     'Board_3':{
-        'name':'Fan',
+        'name':'AR3(Fan)',
         'model':'Arduino Nano ESP32',
         'fqbn':'arduino:esp32:nano_nora',
         'usb_port':'3',
