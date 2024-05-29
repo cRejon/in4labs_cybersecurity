@@ -2,9 +2,9 @@
 #include <LiquidCrystal.h>      // include LCD library
 #include "DES.h" 			//incluye la libreria DES
 
-#define RED_PIN 5  
-#define GREEN_PIN 6
-#define BLUE_PIN 9
+#define RED_PIN A0  
+#define GREEN_PIN A1
+#define BLUE_PIN A2
 
 DES des;						// declara la variable para encritar y desencriptar
 byte key[] = { 
@@ -16,12 +16,13 @@ byte key[] = {
 void setup() {
   Wire.begin();
   Wire.setWireTimeout(3000, true);
+  
   pinMode(GREEN_PIN, OUTPUT);    	// Led verde encendido significa que el puerto serie esta libre
   pinMode(BLUE_PIN, OUTPUT);     	// Led azul no se usará de momento
   pinMode(RED_PIN, OUTPUT);      	// Led rojo encendido significa que el puerto serie esta ocupado
-  digitalWrite(GREEN_PIN, 255);    	// encender led verde
-  digitalWrite(BLUE_PIN, 0);   	// apagar led azul  
-  digitalWrite(RED_PIN, 0);	// apagar led rojo
+  analogWrite(GREEN_PIN, 255);    	// encender led verde
+  analogWrite(BLUE_PIN, 0);   	// apagar led azul  
+  analogWrite(RED_PIN, 0);	// apagar led rojo
 
   lcd.begin(16, 2);           // set up the LCD's number of columns and rows
   lcd.clear(); 
@@ -39,8 +40,8 @@ void loop() {
   long currentMillis = millis();              
   if(currentMillis-previousMillis>= 20000){    	// Si la temperatura se ha leido hace mas de 20seg
     previousMillis=currentMillis;
-    digitalWrite(GREEN_PIN, 0);  	// apagar led verde
-    digitalWrite(RED_PIN, 255);       	// encender led rojo
+    analogWrite(GREEN_PIN, 0);  	// apagar led verde
+    analogWrite(RED_PIN, 255);       	// encender led rojo
 	
 	//encriptar cadena a enviar
 	cadena="T";						  // se envia un byte concretamente la letra T
@@ -65,8 +66,8 @@ void loop() {
 		datos+=cadena_descifrada;
     }
     updateTFT();
-    digitalWrite(GREEN_PIN, 255);	// encender el led verde
-    digitalWrite(RED_PIN, 0);   	// apagar el led rojo
+    analogWrite(GREEN_PIN, 255);	// encender el led verde
+    analogWrite(RED_PIN, 0);   	// apagar el led rojo
   }	     
 }
 

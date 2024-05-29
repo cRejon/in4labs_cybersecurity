@@ -10,11 +10,6 @@
 const int rs = 3, en = 4, d4 = 5, d5 = 6, d6 = 9, d7 = 10;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-// initialize the library by associating any needed LCD interface pin
-// with the arduino pin number it is connected to
-const int rs = 17, en = 16, d4 = 15, d5 = 14, d6 = 4, d7 = 2;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-
 void setup() {  
     pinMode(GREEN_PIN, OUTPUT);      // Se define el pin del led verde como salida
     pinMode(BLUE_PIN, OUTPUT);       // Se define el pin del led azul como salida
@@ -31,12 +26,21 @@ String datos;
 String SSID;               
 
 void loop() {
- 
+    datos="Buscando redes";
+    updateLCD();						//muestra mensaje mientras busca
+    delay(2000);
+    int n_SSID=WiFi.scanNetworks();	//escanea en busca de redes 
+    if (n_SSID!=-1) {					//si ha encontrado algo
+        datos="Num Redes=";
+        datos+=n_SSID;
+        updateLCD();
+    }
+    delay(20000);                     //espera de 20 segundos  
 }
 
 // function that updates the LCD screen
 void updateLCD() {
-  lcd.clear();
-  lcd.setCursor(1, 0);
-  lcd.print(datos);
+    lcd.clear();
+    lcd.setCursor(1, 0);
+    lcd.print(datos);
 }

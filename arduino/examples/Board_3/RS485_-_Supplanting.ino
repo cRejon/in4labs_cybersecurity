@@ -19,31 +19,5 @@ void setup() {
 }
 
 void loop() {
-	if (Serial1.available()){
-		delay(200);
-		if (Serial1.read()=='I') {            		// espera a que haya en el BUS un inicio de trama
-			if (Serial1.read()=='T'){
-				if (Serial1.read()=='F'){
-					analogWrite(GREEN_PIN, 0);  // apagar el led verde
-					analogWrite(RED_PIN, 255);      	// encender el led rojo
-					Serial1.write("I");
-					Serial1.write(100);
-					Serial1.write("F");
-					Serial1.flush();
-					delay(100);
-					analogWrite(GREEN_PIN, 255);    // encender el led verde
-					analogWrite(RED_PIN, 0);    // apagar el led rojo 
-				}
-				else {
-					Serial1.flush();
-				}
-			}
-			else {
-				Serial1.flush();
-			}
-		}
-		else {
-			Serial1.flush();
-		}
-	}
+	
 }

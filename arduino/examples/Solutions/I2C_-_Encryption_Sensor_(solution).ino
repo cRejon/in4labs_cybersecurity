@@ -2,9 +2,9 @@
 #include <DHT.h>  			// incluye la libreria DHT
 #include "DES.h" 			//incluye la libreria DES
 
-#define RED_PIN 5  
-#define GREEN_PIN 6
-#define BLUE_PIN 9
+#define RED_PIN A0  
+#define GREEN_PIN A1
+#define BLUE_PIN A2
 
 #define DATA_PIN 2                   // define the type data pin
 #define DHT_TYPE DHT22               // define the DHT sensor (DHT11, DHT21, or DHT22)
@@ -29,9 +29,9 @@ void setup() {
   pinMode(GREEN_PIN, OUTPUT);	// Led verde encendido significa que el puerto serie esta libre
   pinMode(BLUE_PIN, OUTPUT);   // Led azul no se usará de momento
   pinMode(RED_PIN, OUTPUT);    // Led rojo encendido significa que el puerto serie esta ocupado
-  digitalWrite(GREEN_PIN, 255);  // encender led verde
-  digitalWrite(BLUE_PIN, 0); // apagar led azul  
-  digitalWrite(RED_PIN, 0);	// apagar led rojo
+  analogWrite(GREEN_PIN, 255);  // encender led verde
+  analogWrite(BLUE_PIN, 0); // apagar led azul  
+  analogWrite(RED_PIN, 0);	// apagar led rojo
 }
 
 String temperatureRead;				// variable para guardar la lectura del sensor+
@@ -43,20 +43,20 @@ void loop() {
 }
 
 void receptionEvent(){
-	digitalWrite(GREEN_PIN, 0);  	// apagar led verde
-	digitalWrite(BLUE_PIN, 255);       	// encender led rojo
+	analogWrite(GREEN_PIN, 0);  	// apagar led verde
+	analogWrite(BLUE_PIN, 255);       	// encender led rojo
 	String temp;
 	temp=String(temperatureRead.toInt());				// paso a cadena un entero de un float
 	temp.toCharArray(texto, temp.length()+1);			// paso la cadena a una tabla
 	des.tripleEncrypt(msg,texto,key); 					// Encriptar el mensaje
 	Wire.write(msg,8);							// escribir 8 bytes
-	digitalWrite(GREEN_PIN, 255);    	// encender el led verde
-	digitalWrite(BLUE_PIN, 0);   	// apagar el led rojo
+	analogWrite(GREEN_PIN, 255);    	// encender el led verde
+	analogWrite(BLUE_PIN, 0);   	// apagar el led rojo
 }
 
 void receiveEvent(int numBytes){
-  digitalWrite(GREEN_PIN, 0);  	// apagar led verde
-  digitalWrite(RED_PIN, 255);       	// encender led rojo
+  analogWrite(GREEN_PIN, 0);  	// apagar led verde
+  analogWrite(RED_PIN, 255);       	// encender led rojo
   if (Wire.available()){				// hay datos que leer
 	//HAY QUE LEER 8 BYTES
 	for (int i = 0; i < 8; i++) {		// leer 8 bytes
@@ -72,6 +72,6 @@ void receiveEvent(int numBytes){
 		temperatureRead = dht.readTemperature(); 	
 	}
   }
-  digitalWrite(GREEN_PIN, 255);    	// encender el led verde
-  digitalWrite(RED_PIN, 0);   	// apagar el led rojo	
+  analogWrite(GREEN_PIN, 255);    	// encender el led verde
+  analogWrite(RED_PIN, 0);   	// apagar el led rojo	
 }

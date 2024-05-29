@@ -1,20 +1,22 @@
-#include <DHT.h>                     // include the DHT library.
+#include <LiquidCrystal.h>      // include LCD library
 
-#define RED_PIN 5  
-#define GREEN_PIN 6
-#define BLUE_PIN 9
+#define RED_PIN A0  
+#define GREEN_PIN A1
+#define BLUE_PIN A2
 
-#define DATA_PIN 2                   // define the type data pin
-#define DHT_TYPE DHT22               // define the DHT sensor (DHT11, DHT21, or DHT22)
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 3, en = 4, d4 = 5, d5 = 6, d6 = 9, d7 = 10;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-DHT dht = DHT(DATA_PIN, DHT_TYPE);   // instantiate the dht class with our data pin and DHT type.
+char tempRead[5];               // char array to hold temperature reading
 
 void setup() {
-  Serial1.begin(115200);          	//configuración de la frecuencia del puerto serie
-  while (!Serial1) {
-	  ;
-  }
-
+  Serial0.begin(115200);  //configuración de la frecuencia del puerto serie
+  while (!Serial0) {
+    ; 
+  }          
+  
   pinMode(GREEN_PIN, OUTPUT);    	// Led verde encendido significa que el puerto serie esta libre
   pinMode(BLUE_PIN, OUTPUT);     	// Led azul no se usará de momento
   pinMode(RED_PIN, OUTPUT);      	// Led rojo encendido significa que el puerto serie esta ocupado
@@ -22,36 +24,45 @@ void setup() {
   analogWrite(BLUE_PIN, 0);   	// apagar led azul  
   analogWrite(RED_PIN, 0);		// apagar led rojo
 
-  dht.begin(); 
+  lcd.begin(16, 2);           // set up the LCD's number of columns and rows
+  lcd.clear(); 
 }
 
-long previousMillis = 0;    // last time the sensor was checked, in ms
-float temperature;     // make a float to hold data read from the sensor
+int tempRead;						// caracter recibido por el sensor
 
 void loop() {
-  
-  long currentMillis = millis();              // current time to be compared with previousMillis
-  
-  if(currentMillis-previousMillis>= 2000){    // if >2 seconds from last reading. DHT22 sampling rate is 0.5Hz
-    temperature = dht.readTemperature();  // read temperature
-    previousMillis=currentMillis;             // reset previousMillis
-  }
+	analogWrite(GREEN_PIN, 0);   		// apagar led verde
+	analogWrite(RED_PIN, 255);       		// encender led rojo
+	Serial0.write("T");
+	delay(200);
+	analogWrite(GREEN_PIN, 255);    		// encender el led verde
+	analogWrite(RED_PIN, 0);   			// apagar el led rojo
+	delay(200);
+	analogWrite(GREEN_PIN, 0);  // apagar led verde
+	analogWrite(RED_PIN, 255);      	// encender led rojo
+    int i = 0;                          // counter for number of bytes received
+    while(Serial0.available()){         // slave may send less than requested
+        char c = Serial0.read();          // receive a byte as character
+        tempRead[i] =  c;                 // load received char into char array
+        i++;
+        if (i == 5){
+        break;  
+        }
 
-  if(Serial1.available()){              // run code only if data received from master
-    char tempChar[5];                 // char array that will be used to send sensor data to master in bytes
-    delay(1);                           // allow time for message to be received in full 
-    
-  
-    if (Serial1.read()=='T'){          // if request for temperature
-	  analogWrite(GREEN_PIN, 0);   		// apagar led verde
-	  analogWrite(RED_PIN, 255);       		// encender led rojo
-      String temperatureRead = String(temperature, 1);  // convert data to String
-      temperatureRead.toCharArray(tempChar, 5);  // String sensor reading to char array
-      Serial1.write(tempChar, 4);                // send char array to master
-      delay(500);
-	  analogWrite(GREEN_PIN, 255);    		// encender el led verde
-	  analogWrite(RED_PIN, 0);   			// apagar el led rojo 
-    } 
-  }
+        updateLCD();
+    }
+
+	analogWrite(GREEN_PIN, 255);    // encender el led verde
+	analogWrite(RED_PIN, 0);   	// apagar el led rojo
+	
+	delay(10000);
 }
 
+// function that updates the LCD screen
+void updateLCD() {
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print("Temp:");
+  lcd.print(tempRead);
+  lcd.print(" C");
+}

@@ -1,66 +1,41 @@
-#include <ArduinoBLE.h> //Incluir libreria BLE
-#include <DHT.h>    	//Incluir libreria del sensor de temperatura
+#include <ArduinoBLE.h>
+#include <LiquidCrystal.h>      // include LCD library
 
-#define RED_PIN 5  
-#define GREEN_PIN 6
-#define BLUE_PIN 9
+#define RED_PIN A0  
+#define GREEN_PIN A1
+#define BLUE_PIN A2
 
-#define DATA_PIN 2                   // define the type data pin
-#define DHT_TYPE DHT22               // define the DHT sensor (DHT11, DHT21, or DHT22)
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 3, en = 4, d4 = 5, d5 = 6, d6 = 9, d7 = 10;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-DHT dht = DHT(DATA_PIN, DHT_TYPE);   // instantiate the dht class with our data pin and DHT type
-
-BLEService sensorService("0005");			// Define el servicio con UUID
-BLECharacteristic temperatureChar("2A21", BLERead | BLENotify,5); // Define la caracteristica con UUID, lectura y notificaciones
+String datos;
+BLEDevice peripheral; 
 
 void setup() {
-  dht.begin();                				
+  pinMode(GREEN_PIN, OUTPUT);    	// Led verde encendido significa que la placa de enciende
+  pinMode(BLUE_PIN, OUTPUT);     	// Led azul encendido significará que esta buscando UUID
+  pinMode(RED_PIN, OUTPUT);      	// Led rojo encendido significa que ha encontrado un UUID
+  analogWrite(GREEN_PIN, 255);    	// encender led verde
+  analogWrite(BLUE_PIN, 0);   	// apagar led azul  
+  analogWrite(RED_PIN, 0);		// apagar led rojo
 
-  if (!BLE.begin()) {                 		// Inicializar BLE
+  
+  if (!BLE.begin()) {                   // Inicialización de BLE
     while (1);
   }
-
-  BLE.setLocalName("DHT22SensorTEST");               // Establezco nombre local
-  BLE.setAdvertisedService(sensorService);          // Asigno servicio con UUID
-  sensorService.addCharacteristic(temperatureChar); // Añado caracteristica
-  BLE.addService(sensorService);                    // Añado servicio al periférico
-  temperatureChar.writeValue("10.00");    			// Establezco un valor inicial a la caracteristica
-  BLE.advertise();                        			// Se empieza a difundir el servicio
-
-  pinMode(GREEN_PIN, OUTPUT);      // Se define el pin del led verde como salida
-  pinMode(BLUE_PIN, OUTPUT);       // Se define el pin del led azul como salida
-  pinMode(RED_PIN, OUTPUT);        // Se define el pin del led rojo como salida
-  digitalWrite(GREEN_PIN, 255);      // Se enciende el led verde
-  digitalWrite(BLUE_PIN, 0);     // Se apaga el led azul
-  digitalWrite(RED_PIN, 0);		// Se apaga el led rojo
 }
 
+char dir_uuid[4];			//almacencamiento de la dirección BLE a buscar
 
 void loop() {
-  String sensorRead;                      // Variable para almacenar la temperatura
-  long previousMillis = 0;                // Variable para controlar ultima lectura
   
-  BLEDevice central = BLE.central();      // Verifica si hay algun dispositivo conectado
+}
 
-  if (central) {                          // Si hay un dispositivo conectado
-    digitalWrite(GREEN_PIN, 0);    // Apago el led verde
-    digitalWrite(BLUE_PIN, 255);        // Enciendo el led azul
-
-    while (central.connected()) {         // Mientra exista conexión
-      long currentMillis = millis();      // Actualizo el valor tiempo actual
-      
-      if (currentMillis - previousMillis >= 2000) { // Si han pasado dos segundos desde la ultima lectura tiempo_actual-ultima_lectura
-        float temperature = dht.readTemperature();         // Leo el sensor
-        sensorRead = String(temperature, 1);               // Paso el valor a String con un decimal
-        char tempChar[6];                           // Variable cadena de caracteres para enviar por BLE
-        sensorRead.toCharArray(tempChar,6);         // Paso el String a tabla de caracteres
-        temperatureChar.writeValue(tempChar,5);     // Envio la tabla de caracteres, especificando que son 5
-        
-        previousMillis = currentMillis;             // Actualizo el valor del tiempo de lectura
-      }
-    }
-  // close the connection:
-  digitalWrite(GREEN_PIN, 255);    // Enciendo el led verde
-  digitalWrite(BLUE_PIN, 0);   // Apago el led azul
-  }
+// function that updates the LCD screen
+void updateLCD() {
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print(datos);
 }

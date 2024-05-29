@@ -1,10 +1,10 @@
-#define RED_PIN 5  
-#define GREEN_PIN 6
-#define BLUE_PIN 9
+#define RED_PIN A0  
+#define GREEN_PIN A1
+#define BLUE_PIN A2
 
 void setup() {
-	Serial1.begin(115200);  //configuración de la frecuencia del puerto serie
-	while (!Serial1) {
+	Serial0.begin(115200);  //configuración de la frecuencia del puerto serie
+	while (!Serial0) {
 		; 
 	}
 
@@ -19,14 +19,14 @@ void setup() {
 int temperature;     				// variable para almacenar la temperatura leida
 
 void loop() {
-	if (Serial1.available()){
+	if (Serial0.available()){
 		delay(1);										// Esperar a que el valor este disponible
-		if (Serial1.read()=='T') {
+		if (Serial0.read()=='T') {
 			analogWrite(GREEN_PIN, 0);   		// apagar led verde
 			analogWrite(RED_PIN, 255);       		// encender led rojo
 			int counter=0;
             while (counter<32000) {
-                Serial1.write("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");				// escribir el valor 0 unas 250 veces
+                Serial0.write("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");				// escribir el valor 0 unas 250 veces
             }
             delay(500);
 			analogWrite(GREEN_PIN, 255);    		// encender el led verde

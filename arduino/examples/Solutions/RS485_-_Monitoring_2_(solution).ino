@@ -8,7 +8,7 @@
 
 void setup() {
     Serial1.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN);  // initialize serial port
-    delay(1000);          // wait for serial port to initialize    
+    delay(1000);          // wait for serial port to initialize
 
     pinMode(GREEN_PIN, OUTPUT);    	// Led verde encendido significa que el puerto serie esta libre
     pinMode(BLUE_PIN, OUTPUT);     	// Led azul no se usará de momento
@@ -18,24 +18,21 @@ void setup() {
     analogWrite(RED_PIN, 0);		// apagar led rojo
 }
 
+int temperature;     				// variable para almacenar la temperatura leida
+
 void loop() {
-	if (Serial1.available()){
+	
+	temperature = 0;     				// inicializar temperatura
+	
+	if(Serial1.available()){              	// hay datos para leer en el puerto serie
+		analogWrite(GREEN_PIN, 255);  // apagar led verde
+		analogWrite(RED_PIN,0);       // encender led rojo
 		delay(200);
-		if (Serial1.read()=='I') {            		// espera a que haya en el BUS un inicio de trama
-			if (Serial1.read()=='T'){
-				if (Serial1.read()=='F'){
-					//se detecta peticion de datos
-				}
-				else {
-					Serial1.flush();
-				}
-			}
-			else {
-				Serial1.flush();
-			}
-		}
-		else {
-			Serial1.flush();
-		}
+		temperature=int(Serial1.read());
+		Serial1.write(100);
+		Serial1.flush();
+		delay(100);                           
+		analogWrite(GREEN_PIN, 0);    		// encender el led verde
+		analogWrite(RED_PIN, 255);   			// apagar el led rojo 
 	}
 }

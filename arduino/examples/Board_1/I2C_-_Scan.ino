@@ -1,37 +1,50 @@
 #include <Wire.h> 			// incluye la libreria Wire
-#include <LiquidCrystal.h>      // include LCD library
+#include <DHT.h>  			// incluye la libreria DHT
 
-#define RED_PIN 5  
-#define GREEN_PIN 6
-#define BLUE_PIN 9
+#define RED_PIN A0  
+#define GREEN_PIN A1
+#define BLUE_PIN A2
 
-// initialize the library by associating any needed LCD interface pin
-// with the arduino pin number it is connected to
-const int rs = 17, en = 16, d4 = 15, d5 = 14, d6 = 4, d7 = 2;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+#define DATA_PIN 2                   // define the type data pin
+#define DHT_TYPE DHT22               // define the DHT sensor (DHT11, DHT21, or DHT22)
+
+DHT dht = DHT(DATA_PIN, DHT_TYPE);   // instantiate the dht class with our data pin and DHT type.
 
 void setup() {
-  Wire.begin();
-  pinMode(GREEN_PIN, OUTPUT);    	// Led verde encendido significa que el puerto serie esta libre
-  pinMode(BLUE_PIN, OUTPUT);     	// Led azul no se usará de momento
-  pinMode(RED_PIN, OUTPUT);      	// Led rojo encendido significa que el puerto serie esta ocupado
-  digitalWrite(GREEN_PIN, 255);    	// encender led verde
-  digitalWrite(BLUE_PIN, 0);   	// apagar led azul  
-  digitalWrite(RED_PIN, 0);	// apagar led rojo
+  dht.begin(); 
 
-  lcd.begin(16, 2);           // set up the LCD's number of columns and rows
-  lcd.clear(); 
+  Wire.begin(9);					// estableciendo dirección 9
+  Wire.setClock(10000);				// establezco la velocidad del bus en lenta
+  Wire.onReceive(receiveEvent);		// si se recibe algún dato pasarlo a la funcion 'receiveEvent'
+  Wire.onRequest(requestEvent); 	// si se requiere algun dato ejecutar la funcion 'requestEvent'
+
+  pinMode(GREEN_PIN, OUTPUT);	// Led verde encendido significa que el puerto serie esta libre
+  pinMode(BLUE_PIN, OUTPUT);   // Led azul no se usará de momento
+  pinMode(RED_PIN, OUTPUT);    // Led rojo encendido significa que el puerto serie esta ocupado
+  analogWrite(GREEN_PIN, 255);  // encender led verde
+  analogWrite(BLUE_PIN, 0); // apagar led azul  
+  analogWrite(RED_PIN, 0);	// apagar led rojo
 }
 
-String datos;
+String temperatureRead;				// variable para guardar la lectura del sensor
 
 void loop() {
-	   
+  delay(2000);            		//Espera activa de 2 segundo
 }
 
-// function that updates the LCD screen
-void updateLCD() {
-  lcd.clear();
-  lcd.setCursor(1, 0);
-  lcd.print(datos);
+void requestEvent(){
+      Wire.write(temperatureRead.toInt());  // se envia un byte con el valor de la temperatura
+}
+
+void receiveEvent(int numBytes){
+  analogWrite(GREEN_PIN, 0);  	// apagar led verde
+  analogWrite(RED_PIN,255);       	// encender led rojo
+  if (Wire.available()){				// hay datos que leer
+	if (Wire.read()=='T'){            	 
+		float temperature = dht.readTemperature(); 	
+        temperatureRead = String(temperature, 1);  // convertir el valor de la temperatura a String
+	}
+  }
+  analogWrite(GREEN_PIN, 255);    	// encender el led verde
+  analogWrite(RED_PIN, 0);   	// apagar el led rojo	
 }

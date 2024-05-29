@@ -5,9 +5,9 @@
 #define FAN_PIN 2             	// Pin de conexión del transistor que activa el ventilador
 # define TEMP_LIMIT 25         	// Límite de temperatura
 
-#define RED_PIN 5  
-#define GREEN_PIN 6
-#define BLUE_PIN 9
+#define RED_PIN A0  
+#define GREEN_PIN A1
+#define BLUE_PIN A2
 
 void setup() {
   BLE.begin();                      // Se inicializa BLE
@@ -15,9 +15,9 @@ void setup() {
   pinMode(GREEN_PIN, OUTPUT);      // Se define el pin del led verde como salida
   pinMode(BLUE_PIN, OUTPUT);       // Se define el pin del led azul como salida
   pinMode(RED_PIN, OUTPUT);        // Se define el pin del led rojo como salida
-  digitalWrite(GREEN_PIN, 255);      // Se enciende el led verde
-  digitalWrite(BLUE_PIN, 0);     // Se apaga el led azul
-  digitalWrite(RED_PIN, 0);		// Se apaga el led rojo
+  analogWrite(GREEN_PIN, 255);      // Se enciende el led verde
+  analogWrite(BLUE_PIN, 0);     // Se apaga el led azul
+  analogWrite(RED_PIN, 0);		// Se apaga el led rojo
 
   digitalWrite(FAN_PIN, HIGH);      		// Se define el pin del ventilador a 0--Apagado
 }
@@ -47,8 +47,8 @@ void loop() {
                                 // No hago nada
   } else {                      // Si esta conectado
 
-	digitalWrite(GREEN_PIN, 0);  // Apago el led verder
-	digitalWrite(BLUE_PIN, 255);      // Enciendo el led azul
+	analogWrite(GREEN_PIN, 0);  // Apago el led verder
+	analogWrite(BLUE_PIN, 255);      // Enciendo el led azul
 	delay(10);                          
   
     if (!peripheral.discoverService("0005")) {  // Si no estoy conectado con el servicio
@@ -64,17 +64,17 @@ void loop() {
     }
     
     peripheral.disconnect();            // Desconecto el periférico       
-    digitalWrite(GREEN_PIN, 255);    // Enciendo el led verde
-    digitalWrite(BLUE_PIN, 0);   // Apago el led azul
+    analogWrite(GREEN_PIN, 255);    // Enciendo el led verde
+    analogWrite(BLUE_PIN, 0);   // Apago el led azul
    
   }
   
   temperatureFloat = temperatureRead.toFloat(); // Convierto la temperatura
   
   if ( temperatureFloat > temperatureLimit){	//si supera el limite
-    analogWrite(FAN_PIN, 0);   				// Enciendo el ventilador    
+    digitalWrite(FAN_PIN, HIGH);   				// Enciendo el ventilador    
   } else {
-    analogWrite(FAN_PIN, 255);             		// Apago el ventilador
+    digitalWrite(FAN_PIN, LOW);             		// Apago el ventilador
   }
   
   delay(20000);                     
