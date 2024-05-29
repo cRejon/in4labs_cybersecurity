@@ -23,11 +23,11 @@ COPY requirements.txt /app/requirements.txt
 RUN pip3 install --trusted-host pypi.python.org -r requirements.txt
 
 # Copy the current directory contents into the container at /app
-COPY in4labs_perception_app /app/in4labs_perception_app
+COPY in4labs_cybersecurity_app /app/in4labs_cybersecurity_app
 COPY arduino /app/arduino
 
 # Make port 8000 available outside this container
 EXPOSE 8000
 
 # Run lab when the container launches
-CMD ["flask", "--app", "in4labs_perception_app", "run", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["flask", "--app", "in4labs_cybersecurity_app", "run", "--host", "0.0.0.0", "--port", "8000"]
