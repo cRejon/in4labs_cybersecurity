@@ -12,6 +12,10 @@ RUN arduino-cli lib install "WiFiNINA"
 RUN arduino-cli lib install "ArduinoBLE"
 RUN arduino-cli lib install "DHT sensor library"
 RUN arduino-cli lib install "LiquidCrystal"
+RUN arduino-cli lib install "AESLib"
+# Copy DES library to the correct location of Arduino libraries
+RUN mkdir -p /root/Arduino/libraries
+COPY arduino/libraries/DES /root/Arduino/libraries/DES 
 
 # Python dependencies are installed here to ensure they will be cached.
 WORKDIR /app
