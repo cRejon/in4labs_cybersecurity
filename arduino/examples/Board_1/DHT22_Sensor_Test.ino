@@ -1,18 +1,16 @@
 /*
   Sketch name: DHT22 Sensor Test
   Code is based off the example code in the DHT library.
-  Adapted for UNED Arduino IoT lab.
+  Adapted for In4Labs Cybersecurity Lab.
 
   Basic code that demonstrates the usage of the DHT sensor library,
   readings will be printed to the serial monitor every 2 seconds.
 
   Circuit:
     - DATA_PIN (pin 2) connected to sensor data line.
-    - RGB LED connected to pins 5 (red), 6 (green) and 9 (blue)
 
   Humidity is read as relative humidiy 5% - 99%
   Temperature is read in Celsius (or Fahrenheit if selected) -40ºC to 80ºC
-  Sensor values can be read into float or String variables.
 */
 
 #include <DHT.h>                     // include the DHT library.

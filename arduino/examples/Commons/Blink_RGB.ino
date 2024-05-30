@@ -1,6 +1,5 @@
 /*
   Sketch name: Blink RGB
-  UNED Arduino IoT lab.
 
   Cicles a RGB LED through a set of different colors.
 
@@ -9,13 +8,13 @@
     - MAX intensity is 255 (ON) 
   
   Circuit:
-    - RGB LED connected to pins 5 (red), 6 (green) and 9 (blue)
+    - RGB LED connected to pins A0 (red), A1 (green) and A2 (blue)
 */
 
 // definitions
-#define RED_PIN 5  
-#define GREEN_PIN 6
-#define BLUE_PIN 9
+#define RED_PIN A0
+#define GREEN_PIN A1
+#define BLUE_PIN A2
 
 #define DELAY 1000       // time in ms that the LEd is set in each color
 
@@ -56,7 +55,7 @@ void setColor(String color) {
       analogWrite(GREEN_PIN, 0);
       analogWrite(BLUE_PIN, 0);
   } else if( color == "MAGENTA"){
-      analogWrite(RED_PIN,127);
+      analogWrite(RED_PIN, 127);
       analogWrite(GREEN_PIN, 0);
       analogWrite(BLUE_PIN, 127);
   } else if( color == "BLUE"){
@@ -77,7 +76,7 @@ void setColor(String color) {
       analogWrite(BLUE_PIN, 0);
   } else if( color == "ORANGE"){
       analogWrite(RED_PIN, 255);
-      analogWrite(GREEN_PIN, 74);
+      analogWrite(GREEN_PIN, 73);
       analogWrite(BLUE_PIN, 0);
   } else { //OFF
       analogWrite(RED_PIN, 0);
