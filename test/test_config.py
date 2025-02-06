@@ -7,7 +7,7 @@ class Config(object):
             'html_name' : 'Laboratory of Cybersecurity',
             'description' : 'This lab performs cybersecurity experiments on Arduino devices.',
             'host_port' : 8002,
-            'nat_port' : 8120,
-            'cam_url': '',
+            'nat_port' : 8002,
+            'cam_url': 'http://ULR_TO_WEBCAM/Mjpeg',
         }],
     }
