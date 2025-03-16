@@ -18,18 +18,11 @@ void setup() {
     for (int i=0; i < numPasswords; i++) {
         Serial.print("Trying password: ");
         Serial.println(passwords[i]);
+        // your code here
+
+
+
         
-        status = WiFi.begin(ssid, passwords[i]);
-        delay(5000);                          	// Wait 5 seconds for connection attempt
-        
-        if (status == WL_CONNECTED) {			// If connection successful
-            Serial.println("Connected!");
-            Serial.print("PWD:");
-            Serial.println(passwords[i]);
-            break;
-        } else {
-            Serial.println("Failed to connect with this password");
-        }
     }
     
     if (status != WL_CONNECTED) {

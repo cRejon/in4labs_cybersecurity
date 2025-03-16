@@ -1,32 +1,42 @@
-#define RED_PIN A0  
-#define GREEN_PIN A1
-#define BLUE_PIN A2
+#define AR1_PIN 1
+#define AR2_PIN 0
 
 void setup() {
-	Serial0.begin(115200);  //configuración de la frecuencia del puerto serie
-	while (!Serial0) {
+	
+  	// Initialize Serial for output
+  	Serial.begin(9600);
+
+	Serial1.begin(9600, SERIAL_8N1, AR1_PIN, 5);
+	while (!Serial1) {
+		; 
+	}
+	Serial2.begin(9600, SERIAL_8N1, AR2_PIN, 6);
+	while (!Serial2) {
 		; 
 	}
 
-	pinMode(RED_PIN, OUTPUT);    // Led verde encendido significa que el puerto serie esta libre
-	pinMode(GREEN_PIN, OUTPUT);     // Led azul no se usará de momento
-	pinMode(BLUE_PIN, OUTPUT);      // Led rojo encendido significa que el puerto serie esta ocupado
-	analogWrite(RED_PIN, 255);    // encender led verde
-	analogWrite(GREEN_PIN, 0);   // apagar led azul  
-	analogWrite(BLUE_PIN, 0);	// apagar led rojo
 }
 
-int temperature;     				// variable para almacenar la temperatura leida
 
 void loop() {
-	if (Serial0.available()){
-		delay(1);										// Esperar a que el valor este disponible
-		if (Serial0.read()=='T') {
-			analogWrite(GREEN_PIN, 0);   		// apagar led verde
-			analogWrite(RED_PIN, 255);       		// encender led rojo
-			delay(500);
-			analogWrite(GREEN_PIN, 255);    		// encender el led verde
-			analogWrite(RED_PIN, 0);   			// apagar el led rojo 
-        }
-	}
+// Check if data is available on Serial1
+  if (Serial1.available()) {
+    // Read data from Serial1
+    String data1 = Serial1.readString();
+    // Output data to Serial
+    Serial.print("AR1 data: ");
+    Serial.println(data1);
+  }
+
+  // Check if data is available on Serial2
+  if (Serial2.available()) {
+    // Read data from Serial2
+    String data2 = Serial2.readString();
+    // Output data to Serial
+    Serial.print("AR2 data: ");
+    Serial.println(data2);
+  }
+
+  // Small delay to avoid overwhelming the Serial output
+  delay(100);
 }

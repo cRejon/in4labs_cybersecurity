@@ -5,75 +5,73 @@
 #define GREEN_PIN A1
 #define BLUE_PIN A2
 
-#define DATA_PIN 2
-#define DHT_TYPE DHT22
+#define DATA_PIN 2                   // Define the data pin for the DHT sensor
+#define DHT_TYPE DHT22               // Define the DHT sensor type (DHT11, DHT21, or DHT22)
 
-DHT dht = DHT(DATA_PIN, DHT_TYPE);
+DHT dht = DHT(DATA_PIN, DHT_TYPE);   // Instantiate the DHT class with the data pin and DHT type
 
-char ssid[] = "WiFi-Access-Point";
-char pass[] = "123456789";
-int keyIndex = 0;
+char ssid[] = "WiFi-Access-Point";        // Define the SSID
+char password[] = "123456789";                    // Connection password
 
-int status = WL_IDLE_STATUS;
+WiFiServer server(80);                        // Define the server listening on port 80
 
-WiFiServer server(80, 1);
+// New function to handle an incoming client connection.
+void handleClient(WiFiClient &client) {
+    String line = "";
+    while (client.connected()) {
+        digitalWrite(GREEN_PIN, LOW);    
+        digitalWrite(RED_PIN, HIGH);      
+        
+        if (client.available()) {
+            char c = client.read();
+            if (c == '\n') {
+                // when an empty line is received, the HTTP header is done
+                if (line.length() == 0) {
+                    // If a temperature request was detected in any line, send the sensor value.
+                    // (Alternatively, the GET line can be processed immediately as shown below)
+                    break;
+                }
+                // Check the line for the GET request
+                if (line.indexOf("GET /temperature") >= 0) {
+                    int temp = int(dht.readTemperature());
+                    client.print(String(temp));
+                    client.println();
+                }
+                line = "";
+            } else if (c != '\r') {
+                line += c;
+            }
+        }
+    }
+    delay(1);
+    client.stop();
+
+    digitalWrite(RED_PIN, LOW);        
+    digitalWrite(GREEN_PIN, HIGH);   
+}
 
 void setup() {
-    dht.begin();
+    pinMode(RED_PIN, OUTPUT);     
+    pinMode(GREEN_PIN, OUTPUT);   
+    pinMode(BLUE_PIN, OUTPUT);  
+    digitalWrite(RED_PIN, LOW);       
+    digitalWrite(GREEN_PIN, HIGH);   
+    digitalWrite(BLUE_PIN, LOW);   
 
-    status = WiFi.softAP(ssid, pass);
+    dht.begin();                
 
-    if (status != WL_AP_LISTENING) {
-        while (true);
-    }
-
-    server.begin();
-
-    pinMode(GREEN_PIN, OUTPUT);
-    pinMode(BLUE_PIN, OUTPUT);
-    pinMode(RED_PIN, OUTPUT);
-    analogWrite(GREEN_PIN, 255);
-    analogWrite(BLUE_PIN, 0);
-    analogWrite(RED_PIN, 0);
+    // Create open network, by default the local IP address of will be 192.168.4.1
+    if (!WiFi.softAP(ssid, password)) { 
+        // Creating access point failed, don't continue
+        while (true); // Halt the program
+    }  
+    
+    server.begin();                              // Initialize the server
 }
 
 void loop() {
-    String sensorRead = "";
-
-    WiFiClient client = server.available(0);
+    WiFiClient client = server.available();   // Check for an available client
     if (client) {
-        String currentLine = "";
-        boolean currentLineIsBlank = true;
-        while (client.connected()) {
-            analogWrite(GREEN_PIN, 0);
-            analogWrite(BLUE_PIN, 255);
-            if (client.available()) {
-                char c = client.read();
-
-                if (c == '\n' && currentLine.length() == 0) {
-                    if (sensorRead != 0) {
-                        client.print(sensorRead);
-                        client.println();
-                        sensorRead = "";
-                    }
-                    break;
-                }
-                if (c == '\n') {
-                    currentLine = "";
-                } else if (c != '\r') {
-                    currentLine += c;
-                }
-
-                if (currentLine.endsWith("GET /Temperature")) {
-                    float temp = dht.readTemperature(true);
-                    sensorRead = String(temp, 2);
-                }
-            }
-        }
-        delay(1);
-
-        client.stop();
-        analogWrite(GREEN_PIN, 255);
-        analogWrite(BLUE_PIN, 0);
+        handleClient(client);
     }
 }

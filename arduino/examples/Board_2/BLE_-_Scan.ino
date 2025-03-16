@@ -1,41 +1,81 @@
 #include <ArduinoBLE.h>
-#include <LiquidCrystal.h>      // include LCD library
 
-#define RED_PIN A0  
-#define GREEN_PIN A1
-#define BLUE_PIN A2
 
-// initialize the library by associating any needed LCD interface pin
-// with the arduino pin number it is connected to
-const int rs = 3, en = 4, d4 = 5, d5 = 6, d6 = 9, d7 = 10;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-
-String datos;
-BLEDevice peripheral; 
+const char* peripheralName = "SensorDHT22"; 
 
 void setup() {
-  pinMode(GREEN_PIN, OUTPUT);    	// Led verde encendido significa que la placa de enciende
-  pinMode(BLUE_PIN, OUTPUT);     	// Led azul encendido significará que esta buscando UUID
-  pinMode(RED_PIN, OUTPUT);      	// Led rojo encendido significa que ha encontrado un UUID
-  analogWrite(GREEN_PIN, 255);    	// encender led verde
-  analogWrite(BLUE_PIN, 0);   	// apagar led azul  
-  analogWrite(RED_PIN, 0);		// apagar led rojo
+    Serial.begin(9600);
+    while (!Serial) {
+        ;                         // Serial used for communication with other boards
+    }
+    
+    if (!BLE.begin()) {
+        while (1);
+    }
 
-  
-  if (!BLE.begin()) {                   // Inicialización de BLE
-    while (1);
-  }
+    // start scanning for peripherals
+    BLE.scan();
 }
-
-char dir_uuid[4];			//almacencamiento de la dirección BLE a buscar
 
 void loop() {
-  
+    // check if a peripheral has been discovered
+    BLEDevice peripheral = BLE.available();
+
+    if (peripheral) {
+        // your code here
+
+
+
+
+
+        // see if peripheral is our desired one
+        if (your code here) {
+            // stop scanning
+            BLE.stopScan();
+            // explore services of the peripheral
+            exploreServices(peripheral);
+
+            // we are done, disconnect
+            Serial.println("Disconnecting ...");
+            peripheral.disconnect();
+            while (1) {
+                //  nothing to do
+            }
+        }
+    }
+
+    delay(1000);  
 }
 
-// function that updates the LCD screen
-void updateLCD() {
-  lcd.clear();
-  lcd.setCursor(1, 0);
-  lcd.print(datos);
+void exploreServices(BLEDevice peripheral) {
+    BLEService service;
+
+    // try to connect to the peripheral
+    if (peripheral.connect()) {
+        // your code here
+
+
+
+
+        // loop the services of the peripheral, print UUID of each and explore its characteristics
+        for (int i = 0; i < peripheral.serviceCount(); i++) {
+            // your code here
+
+
+
+            exploreCharacteristics(service);
+        }
+    } else {
+        Serial.println("Failed to connect!");
+    }
+}
+
+
+void exploreCharacteristics(BLEService service) {
+    BLECharacteristic characteristic;
+
+    // your code here
+
+
+
 }

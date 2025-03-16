@@ -1,42 +1,88 @@
-#include <WiFi.h>   // Declaro la libreria WiFi
+#include <WiFi.h>               // include WiFi library
 #include <LiquidCrystal.h>      // include LCD library
 
-#define RED_PIN A0  
-#define GREEN_PIN A1
-#define BLUE_PIN A2
+#define TIMEOUT 2000           // Tiempo de espera para la respuesta del servidor
+#define DELAY 10000             // Tiempo de espera entre lecturas
 
-// initialize the library by associating any needed LCD interface pin
-// with the arduino pin number it is connected to
+
+char ssid[] = "WiFi-Access-Point";        // Define the SSID
+char password[] = "123456789";                    // Connection password
+
+char serverSensor[] = "192.168.4.1";    // Server IP address
+WiFiClient client;                      // Crear cliente WiFi
+
+int temperature = 0;              // Variable de temperatura
+
 const int rs = 3, en = 4, d4 = 5, d5 = 6, d6 = 9, d7 = 10;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-// initialize the library by associating any needed LCD interface pin
-// with the arduino pin number it is connected to
-const int rs = 17, en = 16, d4 = 15, d5 = 14, d6 = 4, d7 = 2;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+void connectToWiFi() {
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(1000);
+    }
+}
 
-void setup() {  
-    pinMode(GREEN_PIN, OUTPUT);      // Se define el pin del led verde como salida
-    pinMode(BLUE_PIN, OUTPUT);       // Se define el pin del led azul como salida
-    pinMode(RED_PIN, OUTPUT);        // Se define el pin del led rojo como salida
-    analogWrite(GREEN_PIN, 255);      // Se enciende el led verde
-    analogWrite(BLUE_PIN, 0);     // Se apaga el led azul
-    analogWrite(RED_PIN, 0);    // Se apaga el led rojo
+// function that sends a request to the server
+void sendHttpRequest(const char* server, const char* request) {
+    client.print("GET /");
+    client.print(request);
+    client.println(" HTTP/1.1");
+    client.print("Host: ");
+    client.println(server);
+    client.println("Connection: keep-alive");
+    client.println();     // send empty new line (end of HTTP request)
+    delay(1);            // give client time to receive, process data and reply
+}
+
+// Refactored readHttpResponse function using millis() for timeout checking
+String readHttpResponse() {
+    String response;
+    unsigned long startTime = millis();
+    const unsigned long timeout = TIMEOUT;
+    // Wait for data to become available (up to 1s)
+    while (!client.available() && (millis() - startTime < timeout)) {
+        delay(10);
+    }
+    // Read available data
+    while (client.available()) {
+        response += (char)client.read();
+    }
+
+    client.stop();
+    return response;
+}
+
+void updateLCD() {
+    lcd.clear();
+    lcd.setCursor(1, 0);
+    lcd.print("Temp: ");
+    lcd.print(temperature);
+    lcd.print(" C");
+} 
+
+void setup() {
+    IPAddress local_IP(192, 168, 4, 2);
+    IPAddress gateway(192, 168, 4, 1);
+    IPAddress subnet(255, 255, 255, 0);
+    WiFi.config(local_IP, gateway, subnet);  // Se configura IP del cliente
+    connectToWiFi();
 
     lcd.begin(16, 2);           // set up the LCD's number of columns and rows
-    lcd.clear(); 
+    lcd.clear();
+    lcd.print("Setup done");   
+    delay(2000);
 }
-
-String datos;
-String SSID;               
 
 void loop() {
- 
-}
+    
+    if (client.connect(serverSensor, 80)) {   // Si hay conexion con el servidor en el puerto 80
+        String dataRead; 
+        sendHttpRequest(serverSensor, "temperature");  // Enviar solicitud de temperatura                                   
+        dataRead = readHttpResponse(); 
+        temperature = dataRead.toInt(); // Convertir la temperatura a entero
+        updateLCD();
+    }
 
-// function that updates the LCD screen
-void updateLCD() {
-  lcd.clear();
-  lcd.setCursor(1, 0);
-  lcd.print(datos);
+    delay(DELAY);                     
 }

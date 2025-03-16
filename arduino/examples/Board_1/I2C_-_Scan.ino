@@ -1,50 +1,34 @@
-#include <Wire.h> 			// incluye la libreria Wire
-#include <DHT.h>  			// incluye la libreria DHT
+#include <Wire.h> 				// includes the Wire library
+#include <DHT.h>  				// includes the DHT library
 
-#define RED_PIN A0  
-#define GREEN_PIN A1
-#define BLUE_PIN A2
+#define DATA_PIN 2                   // defines the data pin
+#define DHT_TYPE DHT22               // defines the DHT sensor (DHT11, DHT21, or DHT22)
 
-#define DATA_PIN 2                   // define the type data pin
-#define DHT_TYPE DHT22               // define the DHT sensor (DHT11, DHT21, or DHT22)
-
-DHT dht = DHT(DATA_PIN, DHT_TYPE);   // instantiate the dht class with our data pin and DHT type.
+DHT dht = DHT(DATA_PIN, DHT_TYPE);   // instantiate the DHT class with our data pin and DHT type.
 
 void setup() {
-  dht.begin(); 
+    dht.begin(); 
 
-  Wire.begin(9);					// estableciendo dirección 9
-  Wire.setClock(10000);				// establezco la velocidad del bus en lenta
-  Wire.onReceive(receiveEvent);		// si se recibe algún dato pasarlo a la funcion 'receiveEvent'
-  Wire.onRequest(requestEvent); 	// si se requiere algun dato ejecutar la funcion 'requestEvent'
-
-  pinMode(GREEN_PIN, OUTPUT);	// Led verde encendido significa que el puerto serie esta libre
-  pinMode(BLUE_PIN, OUTPUT);   // Led azul no se usará de momento
-  pinMode(RED_PIN, OUTPUT);    // Led rojo encendido significa que el puerto serie esta ocupado
-  analogWrite(GREEN_PIN, 255);  // encender led verde
-  analogWrite(BLUE_PIN, 0); // apagar led azul  
-  analogWrite(RED_PIN, 0);	// apagar led rojo
+    Wire.begin(9);					// setting address 9
+    Wire.onReceive(receiveEvent);		// if data is received, pass it to the 'receiveEvent' function
+    Wire.onRequest(requestEvent); 	// if data is requested, execute the 'requestEvent' function
 }
 
-String temperatureRead;				// variable para guardar la lectura del sensor
+int temperature;				// variable to store the sensor reading
 
 void loop() {
-  delay(2000);            		//Espera activa de 2 segundo
+    delay(2000);            		// active wait for 2 seconds
 }
 
 void requestEvent(){
-      Wire.write(temperatureRead.toInt());  // se envia un byte con el valor de la temperatura
+    Wire.write(temperature);  // send a byte with the temperature value
 }
 
 void receiveEvent(int numBytes){
-  analogWrite(GREEN_PIN, 0);  	// apagar led verde
-  analogWrite(RED_PIN,255);       	// encender led rojo
-  if (Wire.available()){				// hay datos que leer
-	if (Wire.read()=='T'){            	 
-		float temperature = dht.readTemperature(); 	
-        temperatureRead = String(temperature, 1);  // convertir el valor de la temperatura a String
-	}
-  }
-  analogWrite(GREEN_PIN, 255);    	// encender el led verde
-  analogWrite(RED_PIN, 0);   	// apagar el led rojo	
+    if (Wire.available()){				// there is data to read
+        if (Wire.read()=='T'){            	 
+            float temp = dht.readTemperature(); 	
+            temperature = (int)temp;
+        }
+    }
 }

@@ -1,56 +1,62 @@
-#include <ArduinoBLE.h>		//Incluir libreria BLE
+#include <ArduinoBLE.h> // Include BLE library
 
-#define FAN_PIN 2             	// Pin de conexión del transistor que activa el ventilador
+// Pin and threshold configuration
+#define FAN_PIN 2        // Fan transistor connection pin
+#define TEMP_LIMIT 30    // Temperature threshold
+#define DELAY 20000      // Wait time
 
-#define RED_PIN A0  
-#define GREEN_PIN A1
-#define BLUE_PIN A2
+// BLE configuration
+const char* peripheralAddress = "00:00:00:00:00:00"; // MAC of the peripheral device
+const char* serviceUuid = "19B10000-E8F2-537E-4F6C-D104768A1214";
+const char* characteristicUuid = "19B10001-E8F2-537E-4F6C-D104768A1214";
 
+// Global variables
+int temp = 0;
+BLEDevice peripheral;                    // Reference to peripheral device
+BLECharacteristic peripheralCharacteristic; // Reference to characteristic
 
-void setup() {
-  BLE.begin();                 // Se inicializa BLE
-
-  pinMode(GREEN_PIN, OUTPUT);      // Se define el pin del led verde como salida
-  pinMode(BLUE_PIN, OUTPUT);       // Se define el pin del led azul como salida
-  pinMode(RED_PIN, OUTPUT);        // Se define el pin del led rojo como salida
-  analogWrite(GREEN_PIN, 255);      // Se enciende el led verde
-  analogWrite(BLUE_PIN, 0);     // Se apaga el led azul
-  analogWrite(RED_PIN, 0);		// Se apaga el led rojo
-
-  digitalWrite(FAN_PIN, LOW);      		// Se apaga el ventilador
+void blePeripheralConnectHandler(BLEDevice peripheral) {
+    if (peripheral.address() != peripheralAddress) {	
+        peripheral.disconnect();	
+    }
 }
 
-BLEDevice peripheral;                       // Variable para referenciar al periférico
-BLECharacteristic peripheralCharacteristic; // Variable para referenciar a la caracteristica
+void setup() {
+    pinMode(FAN_PIN, OUTPUT);         // Set fan pin as output
+    digitalWrite(FAN_PIN, LOW);       // Turn off fan
 
-void loop() {
-  analogWrite(GREEN_PIN, 0);	// Apaga el LED VERDE
-  analogWrite(BLUE_PIN, 255);   	// Enciende el led azul para indicar que esta buscando UUID  
-  analogWrite(RED_PIN, 0);		// Apaga el LED ROJO
-  BLE.scanForUuid("0005");     			// Escaneo en busca del dispositivo con uuid 
-  peripheral = BLE.available(); 
-
-  int counter = 0;             			// Establezco el contador a 0
-  
-  while(!peripheral && counter < 100){  // Mientras no lo encuentre y el contador sea menor de 100
-    BLE.scanForUuid("0005");            // Escaneo en busca del dispositivo con uuid 
-    delay(10);                                   
-    peripheral = BLE.available();       // Sera verdadero si hay dispositivo con ese UUID        
-    counter =counter+1;                 // incrementar contador
-  }  
-  analogWrite(GREEN_PIN, 255);    	// Enciende el LED VERDE
-  analogWrite(BLUE_PIN, 0);   	// Apaga el LED AZUL- ha parado la busqueda  
-  analogWrite(RED_PIN, 0);		// Apaga el LED ROJO
-  if (peripheral) {						// Si ha encontrado un periférico
-	if (peripheral.connect()) {  		// Se conecta al BLE
-		analogWrite(GREEN_PIN, 0);  // apago  el led verde
-		analogWrite(BLUE_PIN, 0);    // apago el led azul
-		analogWrite(RED_PIN, 255);		//enciendo el led rojo ya estoy conectado al dispositivo
-		while(1);							// bucle infinito para bloquear la conexión con el dispositivo					
-		delay(10);                          // small delay to smooth communication
+    if (!BLE.begin()) {              // Initialize BLE
+        while (1);
     }
-  }
-  analogWrite(GREEN_PIN, 255);    	// Enciende el LED VERDE
-  analogWrite(BLUE_PIN, 0);   	// Apaga el LED AZUL- ha parado la busqueda  
-  analogWrite(RED_PIN, 0);		// Apaga el LED ROJO
+
+    BLE.setEventHandler(BLEConnected, blePeripheralConnectHandler);
+}
+
+void loop() {    
+    do {
+        BLE.scanForUuid(serviceUuid);  // Use serviceUuid variable
+        peripheral = BLE.available();
+        delay(100);
+    } while (!peripheral);  
+
+    BLE.stopScan();               // Stop scanning
+
+    if (peripheral.connect()) {  // Connecting to peripheral
+        delay(10);              // Small delay to smooth communication
+                        
+        if (peripheral.discoverService(serviceUuid)) {
+            peripheralCharacteristic = peripheral.characteristic(characteristicUuid);
+            peripheralCharacteristic.readValue(temp); 		// Read characteristic value
+        }
+
+        if (temp > TEMP_LIMIT){	        // If temperature exceeds limit
+            digitalWrite(FAN_PIN, HIGH);  // Turn on fan    
+        } else {
+            digitalWrite(FAN_PIN, LOW);   // Turn off fan
+        }
+
+        peripheral.disconnect();          // Disconnect peripheral       
+    }
+  
+    delay(DELAY);                     
 }

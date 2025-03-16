@@ -1,66 +1,53 @@
-#include <ArduinoBLE.h> //Incluir libreria BLE
-#include <DHT.h>    	//Incluir libreria del sensor de temperatura
+#include <ArduinoBLE.h> // Include BLE library
+#include <DHT.h>        // Include temperature sensor library
 
-#define RED_PIN A0  
-#define GREEN_PIN A1
-#define BLUE_PIN A2
+// Pin configuration
+#define DATA_PIN 2      // DHT sensor data pin
+#define DHT_TYPE DHT22  // DHT sensor type (DHT11, DHT21, or DHT22)
 
-#define DATA_PIN 2                   // define the type data pin
-#define DHT_TYPE DHT22               // define the DHT sensor (DHT11, DHT21, or DHT22)
+// BLE configuration
+const char* localName = "SensorDHT22"; 
+const char* serviceUuid = "19B10000-E8F2-537E-4F6C-D104768A1214";
+const char* characteristicUuid = "19B10001-E8F2-537E-4F6C-D104768A1214";
 
-DHT dht = DHT(DATA_PIN, DHT_TYPE);   // instantiate the dht class with our data pin and DHT type
+// BLE service and characteristic setup
+BLEService sensorService(serviceUuid);                               // Define service with UUID
+BLEIntCharacteristic tempCharacteristic(characteristicUuid, BLERead); // Define characteristic with UUID, read permission
 
-BLEService sensorService("0005");			// Define el servicio con UUID
-BLECharacteristic temperatureChar("2A21", BLERead | BLENotify,5); // Define la caracteristica con UUID, lectura y notificaciones
+DHT dht = DHT(DATA_PIN, DHT_TYPE);   // Initialize DHT sensor
 
 void setup() {
-  dht.begin();                				
+    dht.begin();                				
 
-  if (!BLE.begin()) {                 		// Inicializar BLE
-    while (1);
-  }
+    if (!BLE.begin()) {                 		// Initialize BLE
+        while (1);
+    }
 
-  BLE.setLocalName("DHT22SensorTEST");               // Establezco nombre local
-  BLE.setAdvertisedService(sensorService);          // Asigno servicio con UUID
-  sensorService.addCharacteristic(temperatureChar); // Añado caracteristica
-  BLE.addService(sensorService);                    // Añado servicio al periférico
-  temperatureChar.writeValue("10.00");    			// Establezco un valor inicial a la caracteristica
-  BLE.advertise();                        			// Se empieza a difundir el servicio
-
-  pinMode(GREEN_PIN, OUTPUT);      // Se define el pin del led verde como salida
-  pinMode(BLUE_PIN, OUTPUT);       // Se define el pin del led azul como salida
-  pinMode(RED_PIN, OUTPUT);        // Se define el pin del led rojo como salida
-  analogWrite(GREEN_PIN, 255);      // Se enciende el led verde
-  analogWrite(BLUE_PIN, 0);     // Se apaga el led azul
-  analogWrite(RED_PIN, 0);		// Se apaga el led rojo
+    // Setup BLE peripheral
+    BLE.setLocalName(localName);                       // Set local name
+    BLE.setAdvertisedService(sensorService);           // Assign service with UUID
+    sensorService.addCharacteristic(tempCharacteristic); // Add characteristic
+    BLE.addService(sensorService);                      // Add service to peripheral
+    tempCharacteristic.writeValue(0);    		          // Set initial characteristic value
+    BLE.advertise();                        		      // Start broadcasting service
 }
 
+unsigned long previousMillis = 0;                // Variable to control last reading
 
 void loop() {
-  String sensorRead;                      // Variable para almacenar la temperatura
-  long previousMillis = 0;                // Variable para controlar ultima lectura
-  
-  BLEDevice central = BLE.central();      // Verifica si hay algun dispositivo conectado
+    BLEDevice central = BLE.central();      // Check if any device is connected
 
-  if (central) {                          // Si hay un dispositivo conectado
-    analogWrite(GREEN_PIN, 0);    // Apago el led verde
-    analogWrite(BLUE_PIN, 255);        // Enciendo el led azul
-
-    while (central.connected()) {         // Mientra exista conexión
-      long currentMillis = millis();      // Actualizo el valor tiempo actual
-      
-      if (currentMillis - previousMillis >= 2000) { // Si han pasado dos segundos desde la ultima lectura tiempo_actual-ultima_lectura
-        float temperature = dht.readTemperature();         // Leo el sensor
-        sensorRead = String(temperature, 1);               // Paso el valor a String con un decimal
-        char tempChar[6];                           // Variable cadena de caracteres para enviar por BLE
-        sensorRead.toCharArray(tempChar,6);         // Paso el String a tabla de caracteres
-        temperatureChar.writeValue(tempChar,5);     // Envio la tabla de caracteres, especificando que son 5
-        
-        previousMillis = currentMillis;             // Actualizo el valor del tiempo de lectura
-      }
+    if (central) {                          // If device is connected
+        while (central.connected()) {         // While connection exists
+            long currentMillis = millis();     // Update current time
+            
+            if (currentMillis - previousMillis >= 2000) { // If two seconds have passed since last reading
+                float temperature = dht.readTemperature();       // Read sensor
+                int intTemperature = (int)temperature;           // Convert value to integer
+                tempCharacteristic.writeValue(intTemperature);   // Write value to characteristic
+                
+                previousMillis = currentMillis;             // Update reading time
+            }
+        }
     }
-  // close the connection:
-  analogWrite(GREEN_PIN, 255);    // Enciendo el led verde
-  analogWrite(BLUE_PIN, 0);   // Apago el led azul
-  }
 }
