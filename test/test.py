@@ -18,14 +18,17 @@ class StopContainerTask(threading.Thread):
          self.end_time = end_time
  
      def run(self):
-        remaining_secs = (end_time - datetime.now()).total_seconds()
-        time.sleep(remaining_secs - 2) # Minus 2 seconds for safety
+        remaining_secs = (end_time - datetime.now(timezone.utc)).total_seconds()
+        time.sleep(remaining_secs) 
         self.container.stop()
         print('Container stopped.')
 
 
 # Import lab config from Config object
-lab_duration = Config.labs_config['duration']
+server_name = Config.labs_config['server_name']
+mounting = Config.labs_config['mountings'][0]
+lab_duration = mounting['duration'] # in minutes
+cam_url = mounting.get('cam_url', '')
 lab = Config.labs_config['labs'][0]
 lab_name = lab['lab_name']
 lab_port = lab['host_port']
@@ -51,10 +54,12 @@ except docker.errors.ImageNotFound:
 # Docker environment variables
 end_time = datetime.now(timezone.utc) + timedelta(minutes=lab_duration)
 docker_env = {
+    'SERVER_NAME': server_name,
+    'LAB_NAME': lab_name,
     'USER_EMAIL': 'admin@email.com',
     'USER_ID': 1,
     'END_TIME': end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-    'CAM_URL': lab.get('cam_url', ''),
+    'CAM_URL': cam_url,
 }
 
 # Run the container
@@ -72,7 +77,7 @@ stop_container.start()
 
 # Get the Raspberry pi IP address
 hostname = subprocess.check_output(['hostname', '-I']).decode("utf-8").split()[0]
-container_url = f'http://{hostname}:{lab_port}'
+container_url = f'http://{hostname}:{lab_port}/{server_name}/{lab_name}/'
 print(f'The container is running at {container_url} during {lab_duration} minutes.')
 
 # Stop the container when the program exits by pressing Ctrl+C
@@ -80,6 +85,3 @@ def exit_handler():
     container.stop()
 
 atexit.register(exit_handler)
-
-
-
