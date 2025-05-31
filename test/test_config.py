@@ -11,7 +11,7 @@ class Config(object):
             'lab_name' : 'in4labs_cybersecurity',
             'html_name' : 'Laboratory of Cybersecurity',
             'description' : 'This lab performs cybersecurity experiments on Arduino devices.',
-            'mounting_id' : 1,
+            'mounting_id' : '1',
             'host_port' : 8002,
         }],
     }
